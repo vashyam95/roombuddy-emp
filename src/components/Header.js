@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import "./Header.css";
-import logo from "../assets/mainLogo3-removebg-preview.png";
+import logo from "../assets/wellcome_img.png";
 
 export default function Header({ onLogout }) {
   const navigate = useNavigate();
@@ -26,6 +26,7 @@ export default function Header({ onLogout }) {
         <Link to="/" onClick={() => setMenuOpen(!menuOpen)}>Dashboard</Link>
         <Link to="/add-property" onClick={() => setMenuOpen(!menuOpen)}>Add Property</Link>
         <Link to="/view-property" onClick={() => setMenuOpen(!menuOpen)}>View Property</Link>
+        <Link to="/view-request" onClick={() => setMenuOpen(!menuOpen)}>View Request</Link>
         <button className="logout-btn" onClick={handleLogout}>
           Logout
         </button>

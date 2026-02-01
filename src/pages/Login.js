@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./Login.css";
+import loginImg from "../assets/wellcome_img.png"; // image path
 
 export default function Login({ onLogin }) {
   const [username, setUsername] = useState("");
@@ -14,7 +15,6 @@ export default function Login({ onLogin }) {
       setError("");
       setLoading(true);
 
-      // simulate login delay
       setTimeout(() => {
         setLoading(false);
         onLogin();
@@ -25,17 +25,21 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="login-container">
-      {/* 🔄 Fullscreen loader overlay */}
-      {loading && (
-        <div className="loading-overlay">
-          <div className="spinner"></div>
-          <p>Logging in...</p>
-        </div>
-      )}
+  <div className="login-container">
+    {loading && (
+      <div className="loading-overlay">
+        <div className="spinner"></div>
+        <p>Logging in...</p>
+      </div>
+    )}
+
+    {/* 👇 WRAP LOGO + BOX TOGETHER */}
+    <div className="login-content">
+      <img src={loginImg} alt="Login" className="login-top-image" />
 
       <form className="login-box" onSubmit={handleSubmit}>
         <h2>Login</h2>
+
         <input
           type="text"
           placeholder="Username"
@@ -51,8 +55,11 @@ export default function Login({ onLogin }) {
         <button type="submit" disabled={loading}>
           Login
         </button>
+
         {error && <p className="error">{error}</p>}
       </form>
     </div>
-  );
+  </div>
+);
+
 }

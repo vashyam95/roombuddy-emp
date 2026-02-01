@@ -10,7 +10,6 @@ export default function ViewProperty() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // ✅ Fetch properties from API on mount
   useEffect(() => {
     fetchProperties();
   }, []);
@@ -18,7 +17,7 @@ export default function ViewProperty() {
   const fetchProperties = async () => {
     try {
       const res = await axios.get("https://roombuddy-api.onrender.com/api/properties");
-      setProperties(res.data.map((p, index) => ({ ...p, id: index + 1 }))); // add local id for rendering
+      setProperties(res.data.map((p, index) => ({ ...p, id: index + 1 })));
     } catch (err) {
       console.error("Error fetching properties:", err);
     }
@@ -32,7 +31,6 @@ export default function ViewProperty() {
     setEditedStatus(currentStatus);
   };
 
-  // ✅ Call API to update status
   const handleSave = async (property) => {
     try {
       await axios.put(
@@ -40,7 +38,6 @@ export default function ViewProperty() {
         { status: editedStatus }
       );
 
-      // Update local state immediately
       setProperties((prev) =>
         prev.map((p) =>
           p._id === property._id ? { ...p, status: editedStatus } : p
@@ -60,7 +57,6 @@ export default function ViewProperty() {
       p.area.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredProperties.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredProperties.slice(
@@ -113,6 +109,14 @@ export default function ViewProperty() {
               <th>Address</th>
               <th>Building</th>
               <th>Type</th>
+              <th>Furnishing</th>
+              <th>Tenant</th>
+              <th>Parking</th>
+              <th>Power</th>
+              <th>Geyser</th>
+              <th>Security</th>
+              <th>CCTV</th>
+              <th>Bath</th>
               <th>Floor</th>
               <th>Flat</th>
               <th>Colony</th>
@@ -124,6 +128,7 @@ export default function ViewProperty() {
               <th>Action</th>
             </tr>
           </thead>
+
           <tbody>
             {paginatedData.length > 0 ? (
               paginatedData.map((p) => (
@@ -131,6 +136,14 @@ export default function ViewProperty() {
                   <td>{p.address}</td>
                   <td>{p.building}</td>
                   <td>{p.type}</td>
+                  <td>{p.furnishing}</td>
+                  <td>{p.tenantType}</td>
+                  <td>{p.parking}</td>
+                  <td>{p.powerBackup}</td>
+                  <td>{p.geyser}</td>
+                  <td>{p.security}</td>
+                  <td>{p.cctv}</td>
+                  <td>{p.bathrooms}</td>
                   <td>{p.floor}</td>
                   <td>{p.flat}</td>
                   <td>{p.colony}</td>
@@ -159,8 +172,9 @@ export default function ViewProperty() {
                     ) : (
                       <div className="action-display">
                         <span
-                          className={`status-badge ${p.status === "Open" ? "open" : "closed"
-                            }`}
+                          className={`status-badge ${
+                            p.status === "Open" ? "open" : "closed"
+                          }`}
                         >
                           {p.status}
                         </span>
@@ -177,7 +191,7 @@ export default function ViewProperty() {
               ))
             ) : (
               <tr>
-                <td colSpan="10">No properties found</td>
+                <td colSpan="20">No properties found</td>
               </tr>
             )}
           </tbody>

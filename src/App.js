@@ -5,11 +5,11 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
 import ViewProperty from "./pages/ViewProperty";
+import ViewRequest from "./pages/ViewRequest";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  // 🔹 Load login state from localStorage when app starts
   useEffect(() => {
     const storedLogin = localStorage.getItem("isLoggedIn");
     if (storedLogin === "true") {
@@ -17,13 +17,11 @@ export default function App() {
     }
   }, []);
 
-  // 🔹 Login handler
   const handleLogin = () => {
     setIsLoggedIn(true);
     localStorage.setItem("isLoggedIn", "true");
   };
 
-  // 🔹 Logout handler
   const handleLogout = () => {
     setIsLoggedIn(false);
     localStorage.removeItem("isLoggedIn");
@@ -32,17 +30,36 @@ export default function App() {
   return (
     <div>
       {isLoggedIn && <Header onLogout={handleLogout} />}
+
       <Routes>
-        {!isLoggedIn ? (
-          <Route path="*" element={<Login onLogin={handleLogin} />} />
-        ) : (
-          <>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/add-property" element={<AddProperty />} />
-            <Route path="/view-property" element={<ViewProperty />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </>
-        )}
+        {/* LOGIN */}
+        <Route
+          path="/"
+          element={
+            isLoggedIn ? <Navigate to="/dashboard" /> : <Login onLogin={handleLogin} />
+          }
+        />
+
+        {/* PROTECTED ROUTES */}
+        <Route
+          path="/dashboard"
+          element={isLoggedIn ? <Dashboard /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/add-property"
+          element={isLoggedIn ? <AddProperty /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/view-property"
+          element={isLoggedIn ? <ViewProperty /> : <Navigate to="/" />}
+        />
+         <Route
+          path="/view-request"
+          element={isLoggedIn ? <ViewRequest /> : <Navigate to="/" />}
+        />
+
+        {/* FALLBACK */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
   );

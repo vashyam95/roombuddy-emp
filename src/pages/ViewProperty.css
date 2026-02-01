@@ -60,7 +60,7 @@ td {
 }
 
 th {
-  background: #6d4c41;
+  background: #4e8cff;
   color: #fff;
 }
 
@@ -90,7 +90,7 @@ th {
 }
 
 .edit-btn {
-   background: #6d4c41;
+   background: #4e8cff;
   color: #fff;
   border: none;
   padding: 5px 10px;
@@ -100,7 +100,7 @@ th {
 }
 
 .edit-btn:hover {
-  background: #0056b3;
+  background: #4e8cff;
 }
 
 .save-btn {
@@ -156,7 +156,7 @@ th {
 }
 
 .page-btn {
-  background: #6d4c41;
+  background: #4e8cff;
   color: #fff;
   border: none;
   padding: 6px 14px;
