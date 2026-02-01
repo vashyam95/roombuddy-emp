@@ -1,0 +1,95 @@
+.add-property {
+  padding: 30px;
+   display: flex;
+  flex-direction: column;
+  /* align-items: center; */
+  margin-top: 56px;
+}
+
+.add-property h2 {
+  margin-top: 10px;
+}
+
+.add-property form {
+  display: grid;
+  gap: 10px;
+  max-width: 400px;
+  margin-top: 12px;
+}
+
+.add-property input[type="text"],
+.add-property input[type="number"],
+.add-property input[type="file"] {
+  padding: 8px 0px 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.add-property .file-label {
+  font-weight: 600;
+  color: #333;
+  margin-top: 10px;
+}
+
+.image-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.image-wrapper {
+  position: relative;
+}
+
+.image-wrapper img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+.remove-btn {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.remove-btn:hover {
+  background: darkred;
+}
+
+.add-property button {
+  background: #6d4c41;
+  color: #fff;
+  border: none;
+  padding: 2px 6px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-top: 0px;
+}
+
+.add-property button:hover {
+  background: #0056b3;
+}
+
+@media (max-width: 768px) {
+  .add-property {
+    padding: 15px;
+  }
+
+  .image-wrapper img {
+    width: 70px;
+    height: 70px;
+  }
+}

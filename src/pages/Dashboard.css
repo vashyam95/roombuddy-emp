@@ -1,0 +1,10 @@
+.dashboard {
+  padding: 30px;
+  margin-top: 56px;
+}
+
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 15px;
+  }
+}
