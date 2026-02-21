@@ -10,16 +10,21 @@ export default function ViewProperty() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     fetchProperties();
   }, []);
 
   const fetchProperties = async () => {
     try {
+      setLoading(true);
       const res = await axios.get("https://roombuddy-api.onrender.com/api/properties");
       setProperties(res.data.map((p, index) => ({ ...p, id: index + 1 })));
     } catch (err) {
       console.error("Error fetching properties:", err);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,7 +84,7 @@ export default function ViewProperty() {
       {/* Summary */}
       <div className="property-summary">
         <div className="summary-card open-card">
-          <h3>Open Properties</h3>
+          <h3>Active Properties</h3>
           <p>{openCount}</p>
         </div>
         <div className="summary-card closed-card">
@@ -130,7 +135,11 @@ export default function ViewProperty() {
           </thead>
 
           <tbody>
-            {paginatedData.length > 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="20">Loading...</td>
+              </tr>
+            ) : paginatedData.length > 0 ? (
               paginatedData.map((p) => (
                 <tr key={p._id}>
                   <td>{p.address}</td>
@@ -172,9 +181,8 @@ export default function ViewProperty() {
                     ) : (
                       <div className="action-display">
                         <span
-                          className={`status-badge ${
-                            p.status === "Open" ? "open" : "closed"
-                          }`}
+                          className={`status-badge ${p.status === "Open" ? "open" : "closed"
+                            }`}
                         >
                           {p.status}
                         </span>

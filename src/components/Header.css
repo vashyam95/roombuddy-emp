@@ -30,10 +30,12 @@ header h2 {
   text-decoration: none;
   font-weight: 500;
   margin-top: 4px;
+   text-decoration: none;
 }
 
 .nav-links a:hover {
   text-decoration: underline;
+   text-decoration: none;
 }
 
 .logout-btn {
@@ -68,12 +70,19 @@ header h2 {
 }
 
 
+.nav-links a.active-link {
+  color: #2563eb;
+  font-weight: 600;
+  border-bottom: 2px solid #2563eb;
+}
+
 @media (max-width: 768px) {
   .nav-links {
     display: none;
     width: 100%;
     flex-direction: column;
     margin-top: 10px;
+     text-decoration: none;
   }
 
   .nav-links.active {

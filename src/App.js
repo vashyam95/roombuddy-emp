@@ -6,6 +6,9 @@ import Dashboard from "./pages/Dashboard";
 import AddProperty from "./pages/AddProperty";
 import ViewProperty from "./pages/ViewProperty";
 import ViewRequest from "./pages/ViewRequest";
+import LocationRequest from "./pages/LocationRequest";
+import MoveRequest from "./pages/MoveRequest";
+import OwnerRequest from "./pages/OwnerRequest";
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -56,6 +59,19 @@ export default function App() {
          <Route
           path="/view-request"
           element={isLoggedIn ? <ViewRequest /> : <Navigate to="/" />}
+        />
+         <Route
+          path="/location-request"
+          element={isLoggedIn ? <LocationRequest /> : <Navigate to="/" />}
+        />
+          <Route
+          path="/move-request"
+          element={isLoggedIn ? <MoveRequest /> : <Navigate to="/" />}
+        />
+
+          <Route
+          path="/owner-request"
+          element={isLoggedIn ? <OwnerRequest /> : <Navigate to="/" />}
         />
 
         {/* FALLBACK */}

@@ -2,54 +2,59 @@ import { useState, useEffect } from "react";
 import "./ViewProperty.css";
 import axios from "axios";
 
-export default function ViewRequest() {
-    const [visits, setVisits] = useState([]);
+export default function LocationRequest() {
+    const [requests, setRequests] = useState([]);
     const [editingId, setEditingId] = useState(null);
     const [editedStatus, setEditedStatus] = useState("");
     const [search, setSearch] = useState("");
     const [currentPage, setCurrentPage] = useState(1);
-
-     const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     const itemsPerPage = 10;
 
     useEffect(() => {
-        fetchVisits();
+        fetchRequests();
     }, []);
 
-    const fetchVisits = async () => {
+    const fetchRequests = async () => {
         try {
-             setLoading(true);
+            setLoading(true);
             const res = await axios.get(
-                "https://roombuddy-api.onrender.com/api/visit-request"
+                "https://roombuddy-api.onrender.com/api/location-requests"
             );
-            setVisits(res.data.data);
+            setRequests(res.data.data || []);
         } catch (err) {
-            console.error("Error fetching visits:", err);
+            console.error("Error fetching requests:", err);
         } finally {
             setLoading(false);
         }
     };
 
     // SUMMARY COUNTS
-    const pendingCount = visits.filter(v => v.status === "pending").length;
-    const completedCount = visits.filter(v => v.status === "completed").length;
+    const pendingCount = requests.filter(
+        (r) => r.status === "pending"
+    ).length;
 
+    const completedCount = requests.filter(
+        (r) => r.status === "completed"
+    ).length;
+
+    // UPDATE STATUS
     const handleEdit = (id, currentStatus) => {
         setEditingId(id);
-        setEditedStatus(currentStatus);
+        setEditedStatus(currentStatus || "pending");
     };
 
-    const handleSave = async (visit) => {
+    const handleSave = async (request) => {
         try {
             await axios.put(
-                `https://roombuddy-api.onrender.com/api/visit-request/${visit._id}/status`,
+                `https://roombuddy-api.onrender.com/api/location-requests/${request._id}/status`,
                 { status: editedStatus }
             );
 
-            setVisits(prev =>
-                prev.map(v =>
-                    v._id === visit._id ? { ...v, status: editedStatus } : v
+            setRequests((prev) =>
+                prev.map((r) =>
+                    r._id === request._id ? { ...r, status: editedStatus } : r
                 )
             );
 
@@ -61,36 +66,35 @@ export default function ViewRequest() {
     };
 
     // SEARCH
-    const filtered = visits.filter(v => {
-        const building = v.property?.building?.toLowerCase() || "";
-        const area = v.property?.area?.toLowerCase() || "";
-        const visitId = v.visitId?.toLowerCase() || "";
-
+    const filtered = requests.filter((r) => {
         return (
-            building.includes(search.toLowerCase()) ||
-            area.includes(search.toLowerCase()) ||
-            visitId.includes(search.toLowerCase())
+            r.name?.toLowerCase().includes(search.toLowerCase()) ||
+            r.mobile?.toLowerCase().includes(search.toLowerCase()) ||
+            r.preferredLocation?.toLowerCase().includes(search.toLowerCase()) ||
+            r.homeType?.toLowerCase().includes(search.toLowerCase())
         );
     });
 
-
-    // PAGINATION
     const totalPages = Math.ceil(filtered.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+    const paginatedData = filtered.slice(
+        startIndex,
+        startIndex + itemsPerPage
+    );
 
     return (
         <div className="view-property">
-            <h2>View Visit Requests</h2>
+            <h2>All Location Requests</h2>
 
-            {/* SUMMARY */}
+            {/* SUMMARY CARDS */}
             <div className="property-summary">
                 <div className="summary-card open-card">
-                    <h3>Visit Completed</h3>
+                    <h3>Request Completed</h3>
                     <p>{completedCount}</p>
                 </div>
+
                 <div className="summary-card closed-card">
-                    <h3>Visit Pending</h3>
+                    <h3>Request Pending</h3>
                     <p>{pendingCount}</p>
                 </div>
             </div>
@@ -99,7 +103,7 @@ export default function ViewRequest() {
             <div className="search-bar">
                 <input
                     type="text"
-                    placeholder="Search by Visit ID, Building or Area..."
+                    placeholder="Search by Name, Mobile, Location..."
                     value={search}
                     onChange={(e) => {
                         setSearch(e.target.value);
@@ -113,37 +117,32 @@ export default function ViewRequest() {
                 <table>
                     <thead>
                         <tr>
-                            <th>Visit ID</th>
                             <th>Name</th>
-                            <th>Phone</th>
-                            <th>Date</th>
-                            <th>Slot</th>
-                            <th>Building</th>
-                            <th>Colony</th>
-                            <th>Area</th>
+                            <th>Mobile</th>
+                            <th>Preferred Location</th>
+                            <th>Home Type</th>
                             <th>Status</th>
                             <th>Action</th>
+                            <th>Requested On</th>
                         </tr>
                     </thead>
 
                     <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan="12">Loading...</td>
+                                <td colSpan="7">Loading...</td>
                             </tr>
                         ) : paginatedData.length > 0 ? (
-                            paginatedData.map((v) => (
-                                <tr key={v._id}>
-                                    <td>{v.visitId}</td>
-                                    <td>{v.name}</td>
-                                    <td>{v.phone}</td>
-                                    <td>{v.date}</td>
-                                    <td>{v.slot}</td>
-                                    <td>{v.property?.building || "N/A"}</td>
-                                    <td>{v.property?.colony || "N/A"}</td>
-                                    <td>{v.property?.area || "N/A"}</td>
+                            paginatedData.map((r) => (
+                                <tr key={r._id}>
+                                    <td>{r.name}</td>
+                                    <td>{r.mobile}</td>
+                                    <td>{r.preferredLocation}</td>
+                                    <td>{r.homeType}</td>
+
+                                    {/* STATUS */}
                                     <td>
-                                        {editingId === v._id ? (
+                                        {editingId === r._id ? (
                                             <select
                                                 value={editedStatus}
                                                 onChange={(e) => setEditedStatus(e.target.value)}
@@ -153,33 +152,47 @@ export default function ViewRequest() {
                                                 <option value="cancelled">Cancelled</option>
                                             </select>
                                         ) : (
-                                            <span className={`status-badge ${v.status}`} style={{ color: "black" }}>
-                                                {v.status}
+                                            <span
+                                                className={`status-badge ${r.status || "pending"}`}
+                                                style={{ color: "black" }}
+                                            >
+                                                {r.status || "pending"}
                                             </span>
                                         )}
                                     </td>
+
+
+                                    {/* ACTION */}
                                     <td>
-                                        {editingId === v._id ? (
+                                        {editingId === r._id ? (
                                             <button
                                                 className="save-btn"
-                                                onClick={() => handleSave(v)}
+                                                onClick={() => handleSave(r)}
                                             >
                                                 Save
                                             </button>
                                         ) : (
                                             <button
                                                 className="edit-btn"
-                                                onClick={() => handleEdit(v._id, v.status)}
+                                                onClick={() =>
+                                                    handleEdit(r._id, r.status)
+                                                }
                                             >
                                                 Edit
                                             </button>
                                         )}
                                     </td>
+
+                                    <td>
+                                        {new Date(r.createdAt).toLocaleDateString()}
+                                    </td>
                                 </tr>
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="9">No visit requests found</td>
+                                <td colSpan="7">
+                                    No location requests found
+                                </td>
                             </tr>
                         )}
                     </tbody>
@@ -190,7 +203,9 @@ export default function ViewRequest() {
             <div className="pagination">
                 <button
                     disabled={currentPage === 1}
-                    onClick={() => setCurrentPage(currentPage - 1)}
+                    onClick={() =>
+                        setCurrentPage(currentPage - 1)
+                    }
                 >
                     ⬅ Prev
                 </button>
@@ -198,8 +213,13 @@ export default function ViewRequest() {
                     Page {currentPage} of {totalPages || 1}
                 </span>
                 <button
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={
+                        currentPage === totalPages ||
+                        totalPages === 0
+                    }
+                    onClick={() =>
+                        setCurrentPage(currentPage + 1)
+                    }
                 >
                     Next ➡
                 </button>

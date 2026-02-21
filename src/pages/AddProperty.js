@@ -33,7 +33,8 @@ export default function AddProperty() {
     if (!f.type.value) newErrors.type = "Select room type";
     if (!f.furnishing.value) newErrors.furnishing = "Select furnishing";
     if (!f.tenantType.value) newErrors.tenantType = "Select tenant type";
-    if (!f.parking.value) newErrors.parking = "Select parking option";
+    if (!f.bikeparking.value) newErrors.bikeparking = "Select Bike parking option";
+    if (!f.carparking.value) newErrors.carparking = "Select Car parking option";
     if (!f.powerBackup.value) newErrors.powerBackup = "Select power backup";
     if (!f.geyser.value) newErrors.geyser = "Select geyser option";
     if (!f.security.value) newErrors.security = "Select security option";
@@ -64,7 +65,8 @@ export default function AddProperty() {
       formData.append("type", f.type.value);
       formData.append("furnishing", f.furnishing.value);
       formData.append("tenantType", f.tenantType.value);
-      formData.append("parking", f.parking.value);
+      formData.append("bikeparking", f.bikeparking.value);
+      formData.append("carparking", f.carparking.value);
       formData.append("powerBackup", f.powerBackup.value);
       formData.append("geyser", f.geyser.value);
       formData.append("security", f.security.value);
@@ -152,12 +154,19 @@ export default function AddProperty() {
         </select>
         {errors.tenantType && <span className="error-text">{errors.tenantType}</span>}
 
-        <select name="parking" onChange={handleChange}>
-          <option value="">Parking</option>
+        <select name="bikeparking" onChange={handleChange}>
+          <option value="">Bike Parking</option>
           <option>Yes</option>
           <option>No</option>
         </select>
-        {errors.parking && <span className="error-text">{errors.parking}</span>}
+        {errors.bikeparking && <span className="error-text">{errors.bikeparking}</span>}
+
+        <select name="carparking" onChange={handleChange}>
+          <option value="">Car Parking</option>
+          <option>Yes</option>
+          <option>No</option>
+        </select>
+        {errors.carparking && <span className="error-text">{errors.carparking}</span>}
 
         <select name="powerBackup" onChange={handleChange}>
           <option value="">Power Backup</option>
