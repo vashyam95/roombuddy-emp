@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   Eye,
   RefreshCw,
@@ -40,11 +40,102 @@ export default function InstantAssistantAdmin() {
   const [selectedBuddyId, setSelectedBuddyId] = useState("");
   const [assigning, setAssigning] = useState(false);
 
+
+  // =====================================================
+  // NEW BOOKING NOTIFICATION
+  // =====================================================
+
+  const previousBookingIdsRef = useRef(new Set());
+  const notificationInitializedRef = useRef(false);
+
+  const notificationAudioContextRef = useRef(null);
+const soundEnabledRef = useRef(true);
+
+
+  // =====================================================
+  // PLAY NEW BOOKING SOUND
+  // =====================================================
+
+const playNewBookingSound = async () => {
+  try {
+    const AudioContext =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContext) {
+      console.error("Web Audio API is not supported");
+      return;
+    }
+
+    if (!notificationAudioContextRef.current) {
+      notificationAudioContextRef.current = new AudioContext();
+    }
+
+    const audioContext =
+      notificationAudioContextRef.current;
+
+    if (audioContext.state === "suspended") {
+      await audioContext.resume();
+    }
+
+    const now = audioContext.currentTime;
+
+    const playTone = (
+      frequency,
+      startTime,
+      duration,
+      volume = 0.25
+    ) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+
+      oscillator.type = "sine";
+
+      oscillator.frequency.setValueAtTime(
+        frequency,
+        startTime
+      );
+
+      gainNode.gain.setValueAtTime(
+        0.001,
+        startTime
+      );
+
+      gainNode.gain.exponentialRampToValueAtTime(
+        volume,
+        startTime + 0.03
+      );
+
+      gainNode.gain.exponentialRampToValueAtTime(
+        0.001,
+        startTime + duration
+      );
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+
+    // New booking notification
+    playTone(520, now, 0.35, 0.28);
+    playTone(660, now + 0.18, 0.35, 0.28);
+    playTone(880, now + 0.36, 0.5, 0.3);
+
+    console.log("🔔 New booking sound played");
+  } catch (err) {
+    console.error("❌ NEW BOOKING SOUND ERROR:", err);
+  }
+};
+
   // =====================================================
   // FETCH BOOKINGS
   // =====================================================
 
-  const fetchBookings = async (showLoader = false) => {
+  const fetchBookings = async (
+    showLoader = false,
+    checkNewBooking = false
+  ) => {
     try {
       if (showLoader) {
         setRefreshing(true);
@@ -54,8 +145,52 @@ export default function InstantAssistantAdmin() {
         `${API_BASE}/instant-assistant/admin/bookings`
       );
 
-      if (res.data?.success && Array.isArray(res.data.bookings)) {
-        setBookings(res.data.bookings);
+      if (
+        res.data?.success &&
+        Array.isArray(res.data.bookings)
+      ) {
+        const incomingBookings = res.data.bookings;
+
+        const incomingIds = new Set(
+          incomingBookings
+            .map((booking) => booking.bookingId)
+            .filter(Boolean)
+        );
+
+        // -------------------------------------------------
+        // FIRST LOAD
+        // Do NOT play sound for old/existing bookings.
+        // -------------------------------------------------
+        if (!notificationInitializedRef.current) {
+          previousBookingIdsRef.current =
+            incomingIds;
+
+          notificationInitializedRef.current = true;
+        }
+
+        // -------------------------------------------------
+        // AUTO REFRESH
+        // Detect genuinely new bookings.
+        // -------------------------------------------------
+        if (checkNewBooking) {
+          const newBookings =
+            incomingBookings.filter(
+              (booking) =>
+                booking.bookingId &&
+                !previousBookingIdsRef.current.has(
+                  booking.bookingId
+                )
+            );
+
+          if (newBookings.length > 0) {
+            await playNewBookingSound();
+          }
+
+          previousBookingIdsRef.current =
+            incomingIds;
+        }
+
+        setBookings(incomingBookings);
       } else {
         setBookings([]);
       }
@@ -75,39 +210,39 @@ export default function InstantAssistantAdmin() {
   // =====================================================
 
   const fetchBuddies = async () => {
-  try {
-    console.log("Fetching Instant Assistant Buddies...");
+    try {
+      console.log("Fetching Instant Assistant Buddies...");
 
-    const res = await axios.get(
-      `${API_BASE}/instant-assistant/admin/buddies`
-    );
+      const res = await axios.get(
+        `${API_BASE}/instant-assistant/admin/buddies`
+      );
 
-    console.log(
-      "INSTANT ASSISTANT BUDDIES RESPONSE:",
-      res.data
-    );
-
-    if (
-      res.data?.success &&
-      Array.isArray(res.data.buddies)
-    ) {
-      setBuddies(res.data.buddies);
-    } else {
-      console.warn(
-        "No buddies returned:",
+      console.log(
+        "INSTANT ASSISTANT BUDDIES RESPONSE:",
         res.data
       );
+
+      if (
+        res.data?.success &&
+        Array.isArray(res.data.buddies)
+      ) {
+        setBuddies(res.data.buddies);
+      } else {
+        console.warn(
+          "No buddies returned:",
+          res.data
+        );
+        setBuddies([]);
+      }
+    } catch (err) {
+      console.error(
+        "BUDDY FETCH ERROR:",
+        err.response?.data || err
+      );
+
       setBuddies([]);
     }
-  } catch (err) {
-    console.error(
-      "BUDDY FETCH ERROR:",
-      err.response?.data || err
-    );
-
-    setBuddies([]);
-  }
-};
+  };
 
   // =====================================================
   // INITIAL LOAD
@@ -124,11 +259,50 @@ export default function InstantAssistantAdmin() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      fetchBookings(false);
+      fetchBookings(false, true);
     }, 10000);
 
     return () => clearInterval(interval);
   }, []);
+
+
+  useEffect(() => {
+  const unlockAudio = async () => {
+    try {
+      const AudioContext =
+        window.AudioContext || window.webkitAudioContext;
+
+      if (!AudioContext) return;
+
+      if (!notificationAudioContextRef.current) {
+        notificationAudioContextRef.current =
+          new AudioContext();
+      }
+
+      const audioContext =
+        notificationAudioContextRef.current;
+
+      if (audioContext.state === "suspended") {
+        await audioContext.resume();
+      }
+
+      console.log("🔊 Notification sound unlocked");
+    } catch (err) {
+      console.error(
+        "Audio unlock failed:",
+        err
+      );
+    }
+  };
+
+  window.addEventListener("click", unlockAudio);
+  window.addEventListener("touchstart", unlockAudio);
+
+  return () => {
+    window.removeEventListener("click", unlockAudio);
+    window.removeEventListener("touchstart", unlockAudio);
+  };
+}, []);
 
   // =====================================================
   // SEARCH
@@ -264,8 +438,8 @@ export default function InstantAssistantAdmin() {
 
       alert(
         err.response?.data?.message ||
-          err.message ||
-          "Failed to assign Buddy"
+        err.message ||
+        "Failed to assign Buddy"
       );
     } finally {
       setAssigning(false);
@@ -402,6 +576,7 @@ export default function InstantAssistantAdmin() {
 
           {refreshing ? "Refreshing..." : "Refresh"}
         </button>
+
 
       </div>
 
@@ -698,7 +873,7 @@ export default function InstantAssistantAdmin() {
 
                         {!buddy &&
                           booking.status !==
-                            "CANCELLED" && (
+                          "CANCELLED" && (
                             <button
                               className="ia-assign-btn"
                               onClick={() =>

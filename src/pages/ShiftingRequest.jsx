@@ -14,6 +14,9 @@ export default function ShiftingRequest() {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
+  const [selectedReferralDetails, setSelectedReferralDetails] = useState(null);
+  const [showReferralDetailsModal, setShowReferralDetailsModal] = useState(false);
+
   // =========================
   // SHIFT REFERRAL PAYOUTS
   // =========================
@@ -69,31 +72,36 @@ export default function ShiftingRequest() {
       setReferralLoading(true);
 
       const res = await axios.get(
-        "https://roombuddy-api.onrender.com/api/shift-referral/payouts/eligible"
+        "https://roombuddy-api.onrender.com/api/shift-referral/payouts/all"
       );
 
-      const referrals = Array.isArray(res.data?.data)
+      const referrals = Array.isArray(
+        res.data?.data
+      )
         ? res.data.data
         : [];
 
       const enriched = await Promise.all(
         referrals.map(async (referral) => {
           try {
-            const profileRes = await axios.get(
-              `https://roombuddy-api.onrender.com/api/shift-referral/profile/${referral.referrerPhone}`
-            );
+            const profileRes =
+              await axios.get(
+                `https://roombuddy-api.onrender.com/api/shift-referral/profile/${referral.referrerPhone}`
+              );
 
             return {
               ...referral,
-              bankProfile: profileRes.data?.saved
-                ? profileRes.data.data
-                : null,
+              bankProfile:
+                profileRes.data?.saved
+                  ? profileRes.data.data
+                  : null,
             };
           } catch (profileError) {
             console.error(
               "Referral bank profile fetch failed:",
               profileError
             );
+
             return {
               ...referral,
               bankProfile: null,
@@ -102,13 +110,18 @@ export default function ShiftingRequest() {
         })
       );
 
-      setEligibleReferrals(enriched);
+      setEligibleReferrals(
+        enriched
+      );
+
     } catch (err) {
       console.error(
-        "Error fetching eligible shift referrals:",
+        "Error fetching shift referrals:",
         err
       );
+
       setEligibleReferrals([]);
+
     } finally {
       setReferralLoading(false);
     }
@@ -117,24 +130,54 @@ export default function ShiftingRequest() {
   // =========================
   // MOVE REFERRAL TO PAYOUT PENDING
   // =========================
-  const markReferralPending = async (referral) => {
+  const markReferralPending = async (
+    referral
+  ) => {
     try {
-      setReferralActionId(referral._id);
+      setReferralActionId(
+        referral._id
+      );
 
       await axios.put(
         `https://roombuddy-api.onrender.com/api/shift-referral/payouts/${referral._id}/pending`
       );
 
-      await fetchEligibleReferrals();
-      alert("Referral moved to payout pending");
+      /*
+       * Do not remove the referral from the table.
+       * Just change its displayed state locally.
+       */
+      setEligibleReferrals(
+        (prev) =>
+          prev.map((item) =>
+            item._id === referral._id
+              ? {
+                ...item,
+                status:
+                  "PAYOUT_PENDING",
+              }
+              : item
+          )
+      );
+
+      alert(
+        "Referral marked as Not Paid"
+      );
+
     } catch (err) {
-      console.error("Referral payout pending update failed:", err);
+      console.error(
+        "Referral payout pending update failed:",
+        err
+      );
+
       alert(
         err.response?.data?.message ||
-          "Failed to update payout status"
+        "Failed to update payout status"
       );
+
     } finally {
-      setReferralActionId(null);
+      setReferralActionId(
+        null
+      );
     }
   };
 
@@ -175,7 +218,7 @@ export default function ShiftingRequest() {
       console.error("Referral mark-paid failed:", err);
       alert(
         err.response?.data?.message ||
-          "Failed to mark payout as paid"
+        "Failed to mark payout as paid"
       );
     } finally {
       setReferralActionId(null);
@@ -188,6 +231,11 @@ export default function ShiftingRequest() {
   const handleViewDetails = (data) => {
     setSelectedRequest(data);
     setShowModal(true);
+  };
+
+  const handleReferralViewDetails = (referral) => {
+    setSelectedReferralDetails(referral);
+    setShowReferralDetailsModal(true);
   };
 
   // =========================
@@ -234,9 +282,9 @@ export default function ShiftingRequest() {
         prev.map((r) =>
           r._id === request._id
             ? {
-                ...r,
-                status: editedStatus,
-              }
+              ...r,
+              status: editedStatus,
+            }
             : r
         )
       );
@@ -552,7 +600,7 @@ export default function ShiftingRequest() {
                   <td>
 
                     {editingId ===
-                    r._id ? (
+                      r._id ? (
 
                       <select
                         className="own-status-select"
@@ -608,7 +656,7 @@ export default function ShiftingRequest() {
                   <td>
 
                     {editingId ===
-                    r._id ? (
+                      r._id ? (
 
                       <button
                         className="own-btn own-btn-save"
@@ -807,7 +855,7 @@ export default function ShiftingRequest() {
                     ₹{" "}
                     {Number(
                       selectedRequest.estimatedPrice ||
-                        0
+                      0
                     ).toLocaleString(
                       "en-IN"
                     )}
@@ -820,7 +868,7 @@ export default function ShiftingRequest() {
                     ₹{" "}
                     {Number(
                       selectedRequest.payment?.amount ||
-                        0
+                      0
                     ).toLocaleString(
                       "en-IN"
                     )}
@@ -937,74 +985,74 @@ export default function ShiftingRequest() {
               {selectedRequest.appliances
                 ?.length > 0 && (
 
-                <div className="own-images">
+                  <div className="own-images">
 
-                  <strong>
-                    Appliances
-                  </strong>
+                    <strong>
+                      Appliances
+                    </strong>
 
-                  <div
-                    className="own-images-row"
-                    style={{
-                      display: "flex",
-                      flexDirection:
-                        "column",
-                      gap: "8px",
-                      marginTop:
-                        "12px",
-                    }}
-                  >
+                    <div
+                      className="own-images-row"
+                      style={{
+                        display: "flex",
+                        flexDirection:
+                          "column",
+                        gap: "8px",
+                        marginTop:
+                          "12px",
+                      }}
+                    >
 
-                    {selectedRequest.appliances.map(
-                      (item, index) => (
+                      {selectedRequest.appliances.map(
+                        (item, index) => (
 
-                        <div
-                          key={
-                            item._id ||
-                            index
-                          }
-                          style={{
-                            display:
-                              "flex",
-                            justifyContent:
-                              "space-between",
-                            padding:
-                              "10px 12px",
-                            border:
-                              "1px solid #e5e7eb",
-                            borderRadius:
-                              "8px",
-                          }}
-                        >
+                          <div
+                            key={
+                              item._id ||
+                              index
+                            }
+                            style={{
+                              display:
+                                "flex",
+                              justifyContent:
+                                "space-between",
+                              padding:
+                                "10px 12px",
+                              border:
+                                "1px solid #e5e7eb",
+                              borderRadius:
+                                "8px",
+                            }}
+                          >
 
-                          <strong>
-                            {item.label}
-                          </strong>
+                            <strong>
+                              {item.label}
+                            </strong>
 
-                          <span>
+                            <span>
 
-                            {item.uninstall &&
-                              "Uninstall"}
+                              {item.uninstall &&
+                                "Uninstall"}
 
-                            {item.uninstall &&
-                              item.install &&
-                              " / "}
+                              {item.uninstall &&
+                                item.install &&
+                                " / "}
 
-                            {item.install &&
-                              "Install"}
+                              {item.install &&
+                                "Install"}
 
-                          </span>
+                            </span>
 
-                        </div>
+                          </div>
 
-                      )
-                    )}
+                        )
+                      )}
+
+                    </div>
 
                   </div>
 
-                </div>
-
-              )}
+                )}
 
               {/* MODAL FOOTER */}
               <div className="own-modal-foot">
@@ -1076,19 +1124,68 @@ export default function ShiftingRequest() {
                     <td>{referral.referredName || "N/A"}</td>
                     <td>{referral.referredPhone || "N/A"}</td>
                     <td>{referral.referrerPhone || "N/A"}</td>
-                    <td>{referral.shiftingBookingId || "N/A"}</td>
+                    <td
+                      className="own-link"
+                      onClick={() =>
+                        handleReferralViewDetails(referral)
+                      }
+                    >
+                      {referral.shiftingBookingId || "N/A"}
+                    </td>
                     <td>{referral.shiftingCompletedAt ? new Date(referral.shiftingCompletedAt).toLocaleString("en-IN") : "N/A"}</td>
                     <td>{referral.bankProfile ? `${referral.bankProfile.bankName || "Bank"} · ${referral.bankProfile.ifsc || ""}` : "Not saved"}</td>
                     <td className="own-rent">₹999</td>
-                    <td><span className="own-badge own-badge-completed">Eligible</span></td>
                     <td>
-                      <button
-                        className="own-btn own-btn-edit"
-                        disabled={referralActionId === referral._id}
-                        onClick={() => markReferralPending(referral)}
+                      <span
+                        className={`own-badge ${referral.status === "PAID"
+                          ? "own-badge-completed"
+                          : "own-badge-pending"
+                          }`}
                       >
-                        {referralActionId === referral._id ? "Updating…" : "Payout Pending"}
-                      </button>
+                        {referral.status === "PAID"
+                          ? "Paid"
+                          : "Not Paid"}
+                      </span>
+                    </td>
+                    <td>
+                      {referral.status === "PAID" ? (
+                        <button
+                          className="own-btn own-btn-save"
+                          disabled
+                        >
+                          Paid
+                        </button>
+                      ) : (
+                        <button
+                          className="own-btn own-btn-edit"
+                          disabled={
+                            referralActionId ===
+                            referral._id
+                          }
+                          onClick={() => {
+                            if (
+                              referral.status ===
+                              "SHIFTING_COMPLETED"
+                            ) {
+                              markReferralPending(
+                                referral
+                              );
+                            } else if (
+                              referral.status ===
+                              "PAYOUT_PENDING"
+                            ) {
+                              openMarkPaidModal(
+                                referral
+                              );
+                            }
+                          }}
+                        >
+                          {referralActionId ===
+                            referral._id
+                            ? "Updating…"
+                            : "Edit"}
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -1130,7 +1227,7 @@ export default function ShiftingRequest() {
         <button
           disabled={
             currentPage ===
-              totalPages ||
+            totalPages ||
             totalPages === 0
           }
           onClick={() =>
@@ -1181,6 +1278,357 @@ export default function ShiftingRequest() {
           </div>
         </div>
       )}
+
+
+      {/* =====================================================
+    SHIFT REFERRAL DETAILS MODAL
+===================================================== */}
+
+{showReferralDetailsModal &&
+  selectedReferralDetails && (
+
+    <div
+      className="own-modal-overlay"
+      onClick={() =>
+        setShowReferralDetailsModal(false)
+      }
+    >
+
+      <div
+        className="own-modal"
+        onClick={(e) =>
+          e.stopPropagation()
+        }
+      >
+
+        {/* =========================
+            MODAL HEADER
+        ========================= */}
+
+        <div className="own-modal-head">
+
+          <div>
+
+            <h3>
+              Shift Referral Details
+            </h3>
+
+            <span className="own-modal-sub">
+              {selectedReferralDetails.referredName ||
+                "Friend"}
+              {" · "}
+              {selectedReferralDetails.referredPhone ||
+                "N/A"}
+            </span>
+
+          </div>
+
+
+          <span
+            className={`own-badge ${
+              selectedReferralDetails.status ===
+              "PAID"
+                ? "own-badge-completed"
+                : "own-badge-pending"
+            }`}
+          >
+            {selectedReferralDetails.status ===
+            "PAID"
+              ? "Paid"
+              : "Not Paid"}
+          </span>
+
+        </div>
+
+
+        {/* =========================
+            REFERRAL DETAILS
+        ========================= */}
+
+        <div className="own-details-grid">
+
+          <div>
+            <label>
+              Referral ID
+            </label>
+
+            <span>
+              {selectedReferralDetails._id ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Friend Name
+            </label>
+
+            <span>
+              {selectedReferralDetails.referredName ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Friend Phone
+            </label>
+
+            <span>
+              {selectedReferralDetails.referredPhone ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Referrer Phone
+            </label>
+
+            <span>
+              {selectedReferralDetails.referrerPhone ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Referral Status
+            </label>
+
+            <span>
+              {selectedReferralDetails.status ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Reward Amount
+            </label>
+
+            <span>
+              ₹
+              {Number(
+                selectedReferralDetails.rewardAmount ||
+                  999
+              ).toLocaleString("en-IN")}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Shifting Booking ID
+            </label>
+
+            <span>
+              {selectedReferralDetails.shiftingBookingId ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Invited At
+            </label>
+
+            <span>
+              {selectedReferralDetails.invitedAt
+                ? new Date(
+                    selectedReferralDetails.invitedAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Registered At
+            </label>
+
+            <span>
+              {selectedReferralDetails.registeredAt
+                ? new Date(
+                    selectedReferralDetails.registeredAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Shifting Booked At
+            </label>
+
+            <span>
+              {selectedReferralDetails.shiftingBookedAt
+                ? new Date(
+                    selectedReferralDetails.shiftingBookedAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Shifting Completed At
+            </label>
+
+            <span>
+              {selectedReferralDetails.shiftingCompletedAt
+                ? new Date(
+                    selectedReferralDetails.shiftingCompletedAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Payout Pending At
+            </label>
+
+            <span>
+              {selectedReferralDetails.payoutPendingAt
+                ? new Date(
+                    selectedReferralDetails.payoutPendingAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Paid At
+            </label>
+
+            <span>
+              {selectedReferralDetails.paidAt
+                ? new Date(
+                    selectedReferralDetails.paidAt
+                  ).toLocaleString("en-IN")
+                : "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Payout Reference / UTR
+            </label>
+
+            <span>
+              {selectedReferralDetails.payoutReference ||
+                "-"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Payout Failure Reason
+            </label>
+
+            <span>
+              {selectedReferralDetails.payoutFailureReason ||
+                "-"}
+            </span>
+          </div>
+
+
+          {/* =========================
+              BANK DETAILS
+          ========================= */}
+
+          <div>
+            <label>
+              Bank Name
+            </label>
+
+            <span>
+              {selectedReferralDetails.bankProfile
+                ?.bankName ||
+                "Not saved"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Account Number
+            </label>
+
+            <span>
+              {selectedReferralDetails.bankProfile
+                ?.accountNumber ||
+                "Not saved"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              IFSC Code
+            </label>
+
+            <span>
+              {selectedReferralDetails.bankProfile
+                ?.ifsc ||
+                "Not saved"}
+            </span>
+          </div>
+
+
+          <div>
+            <label>
+              Account Holder Name
+            </label>
+
+            <span>
+              {selectedReferralDetails.bankProfile
+                ?.name ||
+                "Not saved"}
+            </span>
+          </div>
+
+        </div>
+
+
+        {/* =========================
+            MODAL FOOTER
+        ========================= */}
+
+        <div className="own-modal-foot">
+
+          <button
+            className="own-btn own-btn-close"
+            onClick={() =>
+              setShowReferralDetailsModal(
+                false
+              )
+            }
+          >
+            Close
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+)}
 
     </div>
   );

@@ -400,8 +400,13 @@ export default function FindRoomRequest() {
 
                     {/* VISIT DATE */}
                     <td>
-                      {r.visitDate ||
-                        "N/A"}
+                           {r.visitDate
+                      ? new Date(
+                          r.visitDate
+                        ).toLocaleDateString(
+                          "en-IN"
+                        )
+                      : "-"}
                     </td>
 
                     {/* ROOM TYPE */}
@@ -662,10 +667,13 @@ export default function FindRoomRequest() {
                   </label>
 
                   <span>
-                    {
-                      selectedRequest.visitDate ||
-                      "-"
-                    }
+                       {selectedRequest.visitDate
+                      ? new Date(
+                          selectedRequest.visitDate
+                        ).toLocaleDateString(
+                          "en-IN"
+                        )
+                      : "-"}
                   </span>
                 </div>
 
